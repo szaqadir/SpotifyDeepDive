@@ -10,7 +10,8 @@ SPOTIPY_REDIRECT_URI = 'http://localhost:8080'
 SCOPE = 'user-top-read'
 CACHE = '.spotipyoauthcache'
 
-sp_oauth = oauth2.SpotifyOAuth( SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET,SPOTIPY_REDIRECT_URI,scope=SCOPE,cache_path=CACHE )
+sp_oauth = oauth2.SpotifyOAuth(SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET, SPOTIPY_REDIRECT_URI, scope=SCOPE,
+                               cache_path=CACHE)
 
 @route('/')
 def index():
