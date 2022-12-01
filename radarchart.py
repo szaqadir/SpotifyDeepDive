@@ -4,11 +4,18 @@ import spotipy
 from spotipy import oauth2
 from bottle import request
 import pandas as pd
+import sys
+from PyQt5.QtWidgets import *
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+
+#   To avoid plt.legend() warnings
+import logging
+
+logging.getLogger().setLevel(logging.CRITICAL)
 
 categories = ['Acousticness', 'Danceability', 'Energy', 'Speechiness', 'Valence']
 categories = [*categories, categories[0]]
-
-# gather lists for each song! (we going for 5 >:))
 
 df0 = pd.read_json('~/Documents/CS 439/Final Project/MyExtData/endsong_0.json')
 df1 = pd.read_json('~/Documents/CS 439/Final Project/MyExtData/endsong_1.json')
@@ -45,18 +52,18 @@ access_token = ""
 token_info = sp_oauth.get_cached_token()
 
 if token_info:
-    print("Found cached token!")
+    # print("Found cached token!")
     access_token = token_info['access_token']
 else:
     url = request.url
     code = sp_oauth.parse_response_code(url)
     if code != url:
-        print("Found Spotify auth code in Request URL! Trying to get valid access token...")
+        # print("Found Spotify auth code in Request URL! Trying to get valid access token...")
         token_info = sp_oauth.get_access_token(code)
         access_token = token_info['access_token']
 
 if access_token:
-    print("Access token available! Trying to get user information...")
+    # print("Access token available! Trying to get user information...")
     sp = spotipy.Spotify(access_token)
 
     # This is so ugly.. forgive me.
@@ -102,26 +109,172 @@ three = [*three, three[0]]
 four = [*four, four[0]]
 five = [*five, five[0]]
 
-label_loc = np.linspace(start=0, stop=2 * np.pi, num=len(one))
 
-plt.figure(figsize=(8, 8))
-plt.subplot(polar=True)
-plt.plot(label_loc, one, label=title1)
-plt.fill(label_loc, one, alpha=0.2)
+# label_loc = np.linspace(start=0, stop=2 * np.pi, num=len(one))
+#
+# plt.figure(figsize=(8, 8))
+# plt.subplot(polar=True)
+# plt.plot(label_loc, one, label=title1)
+# plt.fill(label_loc, one, alpha=0.2)
+#
+# plt.plot(label_loc, two, label=title2)
+# plt.fill(label_loc, two, alpha=0.2)
+#
+# plt.plot(label_loc, three, label=title3)
+# plt.fill(label_loc, three, alpha=0.2)
+#
+# plt.plot(label_loc, four, label=title4)
+# plt.fill(label_loc, four, alpha=0.2)
+#
+# plt.plot(label_loc, five, label=title5)
+# plt.fill(label_loc, five, alpha=0.2)
+#
+# plt.title('Top Song Comparison', size=20, y=1.05)
+# lines, labels = plt.thetagrids(np.degrees(label_loc), labels=categories)
+# plt.legend()
+# plt.show()
 
-plt.plot(label_loc, two, label=title2)
-plt.fill(label_loc, two, alpha=0.2)
+# Add some text to help the user understand the chart
+# For example, tracks with high valence sound more positive (e.g. happy, cheerful, euphoric),
+# while tracks with low valence sound more negative (e.g. sadpy, depressed, angry).
 
-plt.plot(label_loc, three, label=title3)
-plt.fill(label_loc, three, alpha=0.2)
+# Incorporate recommendations based off of top 5 as well
 
-plt.plot(label_loc, four, label=title4)
-plt.fill(label_loc, four, alpha=0.2)
+class Window(QDialog):
 
-plt.plot(label_loc, five, label=title5)
-plt.fill(label_loc, five, alpha=0.2)
+    # constructor
+    def __init__(self, parent=None):
+        super(Window, self).__init__(parent)
 
-plt.title('Top Song Comparison', size=20, y=1.05)
-lines, labels = plt.thetagrids(np.degrees(label_loc), labels=categories)
-plt.legend()
-plt.show()
+        layout = QVBoxLayout()
+
+        self.one_cb = QCheckBox(title1)
+        self.one_cb.setChecked(True)
+        self.two_cb = QCheckBox(title2)
+        self.three_cb = QCheckBox(title3)
+        self.four_cb = QCheckBox(title4)
+        self.five_cb = QCheckBox(title5)
+
+        self.figure = plt.figure()
+
+        self.canvas = FigureCanvas(self.figure)
+        self.toolbar = NavigationToolbar(self.canvas, self)
+
+        self.one_checked = True
+        self.two_checked = False
+        self.three_checked = False
+        self.four_checked = False
+        self.five_checked = False
+
+        self.one_cb.stateChanged.connect(self.plot_one)
+        self.two_cb.stateChanged.connect(self.plot_two)
+        self.three_cb.stateChanged.connect(self.plot_three)
+        self.four_cb.stateChanged.connect(self.plot_four)
+        self.five_cb.stateChanged.connect(self.plot_five)
+
+        self.plot()
+
+        layout.addWidget(self.toolbar)
+        # layout.addWidget(self.canvas)
+        sublayout = QVBoxLayout()
+        sublayout.addWidget(QLabel("Your Top 5 Songs This Year"))
+        sublayout.addWidget(self.one_cb)
+        sublayout.addWidget(self.two_cb)
+        sublayout.addWidget(self.three_cb)
+        sublayout.addWidget(self.four_cb)
+        sublayout.addWidget(self.five_cb)
+        verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        sublayout.addItem(verticalSpacer)
+
+        grid = QGridLayout()  # 1 x 2
+        grid.addLayout(sublayout, 0, 0)
+        grid.addWidget(self.canvas, 0, 1)
+        layout.addLayout(grid)
+        layout.addWidget(QLabel("======================    Key    ======================\n"
+                                "Acousticness: A confidence measure from 0.0 to 1.0 of whether the track is acoustic\n"
+                                "Danceability: How suitable a track is for dancing based on tempo, "
+                                "rhythm stability, beat strength, and overall regularity\n"
+                                "Energy: A perceptual measure of intensity and activity based on"
+                                " dynamic range, perceived loudness, timbre, onset rate, and general entropy\n"
+                                "Speechiness: The presence of spoken words in a track\n"
+                                "Valence: The musical positiveness conveyed by a track.\n"
+                                "==================================================="))
+        self.setLayout(layout)
+
+    def plot_one(self, checked):
+        if checked:
+            self.one_checked = True
+        else:
+            self.one_checked = False
+        self.plot()
+
+    def plot_two(self, checked):
+        if checked:
+            self.two_checked = True
+        else:
+            self.two_checked = False
+        self.plot()
+
+    def plot_three(self, checked):
+        if checked:
+            self.three_checked = True
+        else:
+            self.three_checked = False
+        self.plot()
+
+    def plot_four(self, checked):
+        if checked:
+            self.four_checked = True
+        else:
+            self.four_checked = False
+        self.plot()
+
+    def plot_five(self, checked):
+        if checked:
+            self.five_checked = True
+        else:
+            self.five_checked = False
+        self.plot()
+
+    def plot(self):
+        self.figure.clear()
+        ax = self.figure.add_subplot(111, polar=True)
+
+        label_loc = np.linspace(start=0, stop=2 * np.pi, num=len(one))
+
+        if self.one_checked:
+            plt.plot(label_loc, one, label=title1)
+            plt.fill(label_loc, one, alpha=0.2)
+        if self.two_checked:
+            plt.plot(label_loc, two, label=title2)
+            plt.fill(label_loc, two, alpha=0.2)
+        if self.three_checked:
+            plt.plot(label_loc, three, label=title3)
+            plt.fill(label_loc, three, alpha=0.2)
+        if self.four_checked:
+            plt.plot(label_loc, four, label=title4)
+            plt.fill(label_loc, four, alpha=0.2)
+        if self.five_checked:
+            plt.plot(label_loc, five, label=title5)
+            plt.fill(label_loc, five, alpha=0.2)
+        plt.title('Top Song Comparison', size=20, y=1.05)
+        lines, labels = plt.thetagrids(np.degrees(label_loc), labels=categories)
+        plt.legend()
+
+        self.canvas.draw()
+
+
+# driver code
+if __name__ == '__main__':
+    # creating apyqt5 application
+    app = QApplication(sys.argv)
+
+    # creating a window object
+    main = Window()
+    main.resize(900, 900)
+
+    # showing the window
+    main.show()
+
+    # loop
+    sys.exit(app.exec_())
