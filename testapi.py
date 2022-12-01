@@ -60,7 +60,7 @@ def index():
         # loading lists into the dataframe
 
         df = pd.DataFrame({'track_name':track_name, 'release_date':release_date})
-
+        #duplicate the df
 
 
         md = df.groupby('release_date').count().to_dict(orient='dict')['track_name']
