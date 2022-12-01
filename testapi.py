@@ -49,11 +49,15 @@ def index():
             track_id.append(item['id'])
 
         # loading lists into the dataframe
-        df = pd.DataFrame({'artist_name':artist_name,'track_name':track_name, 'release_date':release_date})
-        #TODO: sort by release date, make a line plot
+        df = pd.DataFrame({'track_name':track_name, 'release_date':release_date})
+        md = df.groupby('release_date').count().to_dict(orient='dict')['track_name']
+        print(md)
 
-        plt.figure()
-        df.plot()
+        #TODO: sort by release date, make a line plot
+        dates = list(md.keys())           # list() needed for python 3.x
+        songs = list(md.values())        # ditto
+        plt.plot(dates, songs, '-') # this will show date at the x-axis
+        # df.plot()
         plt.show()
 
     else:
