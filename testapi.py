@@ -43,9 +43,9 @@ def index():
         artist_name = []
         track_id = []
         songs = sp.current_user_top_tracks(limit=50,time_range='long_term')
-        songs2 = sp.current_user_top_tracks(offset=50, limit=50,time_range='long_term')
-        songs3 = sp.current_user_top_tracks(offset=100, limit=50,time_range='long_term')
-        songs4 = sp.current_user_top_tracks(offset=150, limit=50,time_range='long_term')
+        songs2 = sp.current_user_top_tracks(offset=50, limit=50, time_range='long_term')
+        songs3 = sp.current_user_top_tracks(offset=100, limit=50, time_range='long_term')
+        songs4 = sp.current_user_top_tracks(offset=150, limit=50, time_range='long_term')
         # song = ChainMap(songs, songs2)
         # song2 = ChainMap(songs3, songs4)
         # finalSong = ChainMap(song, song2)
@@ -60,13 +60,62 @@ def index():
         # loading lists into the dataframe
 
         df = pd.DataFrame({'track_name':track_name, 'release_date':release_date})
-        #duplicate the df
 
+        track_name = []
+        release_date = []
+        artist_name = []
+        track_id = []
+        print(df)
+        for i, item in enumerate(songs2['items']):
+            track_name.append(item['name'])
+            s = item['album']['release_date']
+            release_date.append(int(s[0:4]))
+            artist_name.append(item['artists'][0]['name'])
+            track_id.append(item['id'])
+        # loading lists into the dataframe
+
+        df2 = pd.DataFrame({'track_name':track_name, 'release_date':release_date})
+        print(df2)
+
+        track_name = []
+        release_date = []
+        artist_name = []
+        track_id = []
+        for i, item in enumerate(songs3['items']):
+            track_name.append(item['name'])
+            s = item['album']['release_date']
+            release_date.append(int(s[0:4]))
+            artist_name.append(item['artists'][0]['name'])
+            track_id.append(item['id'])
+        # loading lists into the dataframe
+
+        df3 = pd.DataFrame({'track_name':track_name, 'release_date':release_date})
+        print(df3)
+
+        track_name = []
+        release_date = []
+        artist_name = []
+        track_id = []
+        for i, item in enumerate(songs4['items']):
+            track_name.append(item['name'])
+            s = item['album']['release_date']
+            release_date.append(int(s[0:4]))
+            artist_name.append(item['artists'][0]['name'])
+            track_id.append(item['id'])
+        # loading lists into the dataframe
+
+        df4 = pd.DataFrame({'track_name':track_name, 'release_date':release_date})
+        print(df4)
+
+        frames = [df, df2, df3, df4]
+
+        result = pd.concat(frames)
 
         md = df.groupby('release_date').count().to_dict(orient='dict')['track_name']
+        # print(md)
         dates = list(md.keys())           # list() needed for python 3.x
         numSongs = list(md.values())        # ditto
-        plt.plot(dates, numSongs, '-') # this will show date at the x-axis
+        plt.plot(dates, numSongs, '-', marker='o') # this will show date at the x-axis
         plt.xlabel("Year of Song Release")
         plt.ylabel("Number of Songs Released")
         # df.plot()
