@@ -1,9 +1,11 @@
+import math
 from bottle import route, run, request
 import spotipy
 from spotipy import oauth2
 import matplotlib.pyplot as plt
 from collections import ChainMap
-
+import mplcursors
+import numpy as np
 
 PORT_NUMBER = 8080
 SPOTIPY_CLIENT_ID = 'e43d44dd0cc34a91a559ba1c872bb2b8'
@@ -60,65 +62,30 @@ def index():
         # loading lists into the dataframe
 
         df = pd.DataFrame({'track_name':track_name, 'release_date':release_date})
-
-        track_name = []
-        release_date = []
-        artist_name = []
-        track_id = []
-        print(df)
-        for i, item in enumerate(songs2['items']):
-            track_name.append(item['name'])
-            s = item['album']['release_date']
-            release_date.append(int(s[0:4]))
-            artist_name.append(item['artists'][0]['name'])
-            track_id.append(item['id'])
-        # loading lists into the dataframe
-
-        df2 = pd.DataFrame({'track_name':track_name, 'release_date':release_date})
-        print(df2)
-
-        track_name = []
-        release_date = []
-        artist_name = []
-        track_id = []
-        for i, item in enumerate(songs3['items']):
-            track_name.append(item['name'])
-            s = item['album']['release_date']
-            release_date.append(int(s[0:4]))
-            artist_name.append(item['artists'][0]['name'])
-            track_id.append(item['id'])
-        # loading lists into the dataframe
-
-        df3 = pd.DataFrame({'track_name':track_name, 'release_date':release_date})
-        print(df3)
-
-        track_name = []
-        release_date = []
-        artist_name = []
-        track_id = []
-        for i, item in enumerate(songs4['items']):
-            track_name.append(item['name'])
-            s = item['album']['release_date']
-            release_date.append(int(s[0:4]))
-            artist_name.append(item['artists'][0]['name'])
-            track_id.append(item['id'])
-        # loading lists into the dataframe
-
-        df4 = pd.DataFrame({'track_name':track_name, 'release_date':release_date})
-        print(df4)
-
-        frames = [df, df2, df3, df4]
-
-        result = pd.concat(frames)
-
         md = df.groupby('release_date').count().to_dict(orient='dict')['track_name']
-        # print(md)
+        md2 = df.groupby('release_date').agg(lambda x: list(x)).to_dict(orient='dict')['track_name']
+        print(md)
+        print(md2)
+        
+
+        fig, ax = plt.subplots()
         dates = list(md.keys())           # list() needed for python 3.x
         numSongs = list(md.values())        # ditto
-        plt.plot(dates, numSongs, '-', marker='o') # this will show date at the x-axis
-        plt.xlabel("Year of Song Release")
-        plt.ylabel("Number of Songs Released")
-        # df.plot()
+        ax.bar(dates, numSongs, width = 0.3) # this will show date at the x-axis
+        ax.set(title="How old is your music taste?", xlabel="Year of Song Release", ylabel="Number of Songs Released")
+        cursor = mplcursors.cursor(hover=mplcursors.HoverMode.Transient)
+        @cursor.connect("add")
+        def on_add(sel):
+            x, y, width, height = sel.artist[sel.index].get_bbox().bounds
+            x = math.ceil(x)
+            print(x)
+            z = md2.get(x)
+            print(z)
+            # print(z)
+            sel.annotation.set(text="\n".join(z),
+                            position=(0, -20), anncoords="offset points")
+            # sel.annotation.xy = (x + width / 2, y + height)
+
         plt.show()
 
     else:
