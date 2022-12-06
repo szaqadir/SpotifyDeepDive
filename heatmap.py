@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import *
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
+
 df0 = pd.read_json('~/Documents/CS 439/Final Project/MyAccData/StreamingHistory0.json')
 df1 = pd.read_json('~/Documents/CS 439/Final Project/MyAccData/StreamingHistory1.json')
 
@@ -94,9 +95,7 @@ class Window(QDialog):
         ax.set(xlabel=None)
         self.canvas.draw()
 
-
-# driver code
-if __name__ == '__main__':
+def run():
     # creating apyqt5 application
     app = QApplication(sys.argv)
 
@@ -109,3 +108,8 @@ if __name__ == '__main__':
 
     # loop
     sys.exit(app.exec_())
+
+
+# driver code
+if __name__ == '__main__':
+    run()

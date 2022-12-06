@@ -46,5 +46,5 @@ def on_add(sel):
 plt.title("Top Artists throughout the Year")
 plt.tight_layout()
 plt.show()
-
+plt.close()
 # import filename WORKS WOOOOOOO

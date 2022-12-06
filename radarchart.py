@@ -17,14 +17,15 @@ logging.getLogger().setLevel(logging.CRITICAL)
 categories = ['Acousticness', 'Danceability', 'Energy', 'Speechiness', 'Valence']
 categories = [*categories, categories[0]]
 
-df0 = pd.read_json('~/Documents/CS 439/Final Project/MyExtData/endsong_0.json')
-df1 = pd.read_json('~/Documents/CS 439/Final Project/MyExtData/endsong_1.json')
-df = pd.concat([df0, df1], axis=0)
-df = df[df.ms_played > 60000]  # user must have listened to at least 1 minute of a song
-df = df[['spotify_track_uri', 'ms_played']]
+# df0 = pd.read_json('~/Documents/CS 439/Final Project/MyExtData/endsong_0.json')
+# df1 = pd.read_json('~/Documents/CS 439/Final Project/MyExtData/endsong_1.json')
+# df = pd.concat([df0, df1], axis=0)
+# df = df[df.ms_played > 60000]  # user must have listened to at least 1 minute of a song
+# df = df[['spotify_track_uri', 'ms_played']]
+#
+# df = df.groupby('spotify_track_uri').size().to_frame('play_count').reset_index().sort_values('play_count',
+#                                                                                              ascending=False).head(5)
 
-df = df.groupby('spotify_track_uri').size().to_frame('play_count').reset_index().sort_values('play_count',
-                                                                                             ascending=False).head(5)
 one = []
 two = []
 three = []
@@ -44,8 +45,7 @@ SPOTIPY_REDIRECT_URI = 'http://localhost:8080'
 SCOPE = 'user-top-read'
 CACHE = '.spotipyoauthcache'
 
-sp_oauth = oauth2.SpotifyOAuth(SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET, SPOTIPY_REDIRECT_URI, scope=SCOPE,
-                               cache_path=CACHE)
+sp_oauth = oauth2.SpotifyOAuth(SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET, SPOTIPY_REDIRECT_URI, scope=SCOPE)
 
 access_token = ""
 
@@ -66,6 +66,16 @@ if access_token:
     # print("Access token available! Trying to get user information...")
     sp = spotipy.Spotify(access_token)
 
+    songs = sp.current_user_top_tracks(limit=5, time_range='long_term')
+    track_name = []
+    artist_name = []
+    track_id = []
+    for i, item in enumerate(songs['items']):
+        track_name.append(item['name'])
+        artist_name.append(item['artists'][0]['name'])
+        track_id.append(item['id'])
+
+    df = pd.DataFrame({'artist_name': artist_name, 'track_name': track_name, 'spotify_track_uri': track_id})
     # This is so ugly.. forgive me.
     one.append(sp.audio_features(df.iloc[0]['spotify_track_uri'])[0]['acousticness'])
     one.append(sp.audio_features(df.iloc[0]['spotify_track_uri'])[0]['danceability'])
@@ -264,8 +274,7 @@ class Window(QDialog):
         self.canvas.draw()
 
 
-# driver code
-if __name__ == '__main__':
+def run():
     # creating apyqt5 application
     app = QApplication(sys.argv)
 
@@ -278,3 +287,20 @@ if __name__ == '__main__':
 
     # loop
     sys.exit(app.exec_())
+
+
+# driver code
+if __name__ == '__main__':
+    run()
+    # # creating apyqt5 application
+    # app = QApplication(sys.argv)
+    #
+    # # creating a window object
+    # main = Window()
+    # main.resize(900, 900)
+    #
+    # # showing the window
+    # main.show()
+    #
+    # # loop
+    # sys.exit(app.exec_())
