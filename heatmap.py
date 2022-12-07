@@ -6,18 +6,37 @@ from PyQt5.QtWidgets import *
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
+mode = sys.argv[1]
 
-df0 = pd.read_json('~/Documents/CS 439/Final Project/MyAccData/StreamingHistory0.json')
-df1 = pd.read_json('~/Documents/CS 439/Final Project/MyAccData/StreamingHistory1.json')
+if mode == "M":
+    df0 = pd.read_json('~/Documents/CS 439/Final Project/MykyData/StreamingHistory0.json')
+    df1 = pd.read_json('~/Documents/CS 439/Final Project/MykyData/StreamingHistory1.json')
+    df_all = pd.concat([df0, df1], axis=0)
+    CACHE = '.cache'
+else:
+    df0 = pd.read_json('~/Documents/CS 439/Final Project/SafiData/StreamingHistory0.json')
+    df1 = pd.read_json('~/Documents/CS 439/Final Project/SafiData/StreamingHistory1.json')
+    df2 = pd.read_json('~/Documents/CS 439/Final Project/SafiData/StreamingHistory2.json')
+    df3 = pd.read_json('~/Documents/CS 439/Final Project/SafiData/StreamingHistory3.json')
+    df_all = pd.concat([df0, df1, df2, df3], axis=0)
+    CACHE = '.spotipyoauthcache'
 
-df0['week'] = pd.to_datetime(df0['endTime']).dt.isocalendar().week
-df1['week'] = pd.to_datetime(df1['endTime']).dt.isocalendar().week
-df0['day'] = pd.to_datetime(df0['endTime']).dt.dayofweek
-df1['day'] = pd.to_datetime(df1['endTime']).dt.dayofweek
-df0['hour'] = pd.to_datetime(df0['endTime']).dt.hour
-df1['hour'] = pd.to_datetime(df1['endTime']).dt.hour
+# df0 = pd.read_json('~/Documents/CS 439/Final Project/MyAccData/StreamingHistory0.json')
+# df1 = pd.read_json('~/Documents/CS 439/Final Project/MyAccData/StreamingHistory1.json')
+#
+# df0['week'] = pd.to_datetime(df0['endTime']).dt.isocalendar().week
+# df1['week'] = pd.to_datetime(df1['endTime']).dt.isocalendar().week
+# df0['day'] = pd.to_datetime(df0['endTime']).dt.dayofweek
+# df1['day'] = pd.to_datetime(df1['endTime']).dt.dayofweek
+# df0['hour'] = pd.to_datetime(df0['endTime']).dt.hour
+# df1['hour'] = pd.to_datetime(df1['endTime']).dt.hour
+#
+# df = pd.concat([df0, df1], axis=0)
+df_all['week'] = pd.to_datetime(df_all['endTime']).dt.isocalendar().week
+df_all['day'] = pd.to_datetime(df_all['endTime']).dt.dayofweek
+df_all['hour'] = pd.to_datetime(df_all['endTime']).dt.hour
 
-df = pd.concat([df0, df1], axis=0)
+df = df_all
 
 # print(df)
 

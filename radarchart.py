@@ -14,6 +14,13 @@ import logging
 
 logging.getLogger().setLevel(logging.CRITICAL)
 
+mode = sys.argv[1]
+
+if mode == "M":
+    CACHE = '.cache'
+else:
+    CACHE = '.spotipyoauthcache'
+
 categories = ['Acousticness', 'Danceability', 'Energy', 'Speechiness', 'Valence']
 categories = [*categories, categories[0]]
 
@@ -43,9 +50,10 @@ SPOTIPY_CLIENT_ID = 'e43d44dd0cc34a91a559ba1c872bb2b8'
 SPOTIPY_CLIENT_SECRET = '0c5e0e4c133d4f3889b97a996ae5e2e2'
 SPOTIPY_REDIRECT_URI = 'http://localhost:8080'
 SCOPE = 'user-top-read'
-CACHE = '.spotipyoauthcache'
+# CACHE = '.spotipyoauthcache'
 
-sp_oauth = oauth2.SpotifyOAuth(SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET, SPOTIPY_REDIRECT_URI, scope=SCOPE)
+sp_oauth = oauth2.SpotifyOAuth(SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET, SPOTIPY_REDIRECT_URI, scope=SCOPE,
+                               cache_path=CACHE)
 
 access_token = ""
 
@@ -147,8 +155,6 @@ five = [*five, five[0]]
 # Add some text to help the user understand the chart
 # For example, tracks with high valence sound more positive (e.g. happy, cheerful, euphoric),
 # while tracks with low valence sound more negative (e.g. sadpy, depressed, angry).
-
-# Incorporate recommendations based off of top 5 as well
 
 class Window(QDialog):
 

@@ -2,14 +2,32 @@ import mplcursors as mplcursors
 import pandas as pd
 import matplotlib.pyplot as plt
 import calendar
+import sys
 
-df0 = pd.read_json('~/Documents/CS 439/Final Project/MyAccData/StreamingHistory0.json')
-df1 = pd.read_json('~/Documents/CS 439/Final Project/MyAccData/StreamingHistory1.json')
+mode = sys.argv[1]
 
-df0['month'] = pd.to_datetime(df0['endTime']).dt.month
-df1['month'] = pd.to_datetime(df1['endTime']).dt.month
+if mode == "M":
+    df0 = pd.read_json('~/Documents/CS 439/Final Project/MykyData/StreamingHistory0.json')
+    df1 = pd.read_json('~/Documents/CS 439/Final Project/MykyData/StreamingHistory1.json')
+    df_all = pd.concat([df0, df1], axis=0)
+    CACHE = '.cache'
+else:
+    df0 = pd.read_json('~/Documents/CS 439/Final Project/SafiData/StreamingHistory0.json')
+    df1 = pd.read_json('~/Documents/CS 439/Final Project/SafiData/StreamingHistory1.json')
+    df2 = pd.read_json('~/Documents/CS 439/Final Project/SafiData/StreamingHistory2.json')
+    df3 = pd.read_json('~/Documents/CS 439/Final Project/SafiData/StreamingHistory3.json')
+    df_all = pd.concat([df0, df1, df2, df3], axis=0)
+    CACHE = '.spotipyoauthcache'
 
-df_all = pd.concat([df0, df1], axis=0)
+# df0 = pd.read_json('~/Documents/CS 439/Final Project/MyAccData/StreamingHistory0.json')
+# df1 = pd.read_json('~/Documents/CS 439/Final Project/MyAccData/StreamingHistory1.json')
+#
+# df0['month'] = pd.to_datetime(df0['endTime']).dt.month
+# df1['month'] = pd.to_datetime(df1['endTime']).dt.month
+#
+# df_all = pd.concat([df0, df1], axis=0)
+df_all['month'] = pd.to_datetime(df_all['endTime']).dt.month
+
 
 groups = df_all.groupby(['artistName', 'month'])
 

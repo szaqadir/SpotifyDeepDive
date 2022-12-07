@@ -3,10 +3,14 @@ from bottle import route, run, request
 import spotipy
 from spotipy import oauth2
 import matplotlib.pyplot as plt
-import pandas as pd
 from collections import ChainMap
 import mplcursors
 import numpy as np
+from chord import Chord
+import pandas as pd
+from collections import Counter
+import circlify
+import seaborn as sns
 import sys
 
 #   To avoid plt.legend() warnings
@@ -49,18 +53,14 @@ else:
 if access_token:
     # print("Access token available! Trying to get user information...")
     sp = spotipy.Spotify(access_token)
+
+    ################ CODE HERE ##################
     track_name = []
     release_date = []
     artist_name = []
     track_id = []
+    num_songs = 20
     songs = sp.current_user_top_tracks(limit=50, time_range='long_term')
-    songs2 = sp.current_user_top_tracks(offset=50, limit=50, time_range='long_term')
-    songs3 = sp.current_user_top_tracks(offset=100, limit=50, time_range='long_term')
-    songs4 = sp.current_user_top_tracks(offset=150, limit=50, time_range='long_term')
-    # song = ChainMap(songs, songs2)
-    # song2 = ChainMap(songs3, songs4)
-    # finalSong = ChainMap(song, song2)
-    # print(finalSong)
 
     for i, item in enumerate(songs['items']):
         track_name.append(item['name'])
@@ -70,40 +70,65 @@ if access_token:
         track_id.append(item['id'])
     # loading lists into the dataframe
 
-    df = pd.DataFrame({'track_name': track_name, 'release_date': release_date})
+    df = pd.DataFrame({'track_name': track_name, 'release_date': release_date, 'artist_name': artist_name})
     md = df.groupby('release_date').count().to_dict(orient='dict')['track_name']
     md2 = df.groupby('release_date').agg(lambda x: list(x)).to_dict(orient='dict')['track_name']
-    # print(md)
-    # print(md2)
 
-    fig, ax = plt.subplots()
-    dates = list(md.keys())  # list() needed for python 3.x
-    numSongs = list(md.values())  # ditto
-    ax.bar(dates, numSongs, width=0.3)  # this will show date at the x-axis
-    ax.set(title="How old is your music taste?", xlabel="Year of Song Release", ylabel="Number of Songs Released")
-    cursor = mplcursors.cursor(hover=mplcursors.HoverMode.Transient)
+    genre_list = []
+    for artists in artist_name:
+        result = sp.search(artists)
+        track = result['tracks']['items'][0]
 
+        artist = sp.artist(track["artists"][0]["external_urls"]["spotify"])
+        genre_list.extend(artist["genres"])
 
-    @cursor.connect("add")
-    def on_add(sel):
-        x, y, width, height = sel.artist[sel.index].get_bbox().bounds
-        x = math.ceil(x)
-        # print(x)
-        z = md2.get(x)[0:5]
-        # print(z)
-        # print(z)
-        sel.annotation.set(text="\n".join(z),
-                           position=(0, -20), anncoords="offset points")
-        sel.annotation.get_bbox_patch().set(fc="white")
-        sel.annotation.arrow_patch.set(arrowstyle="simple", fc="white", alpha=.5)
-        # sel.annotation.xy = (x + width / 2, y + height)
+    s = pd.Series(Counter(genre_list), name='genre_val')
+    s.index.name = 'genre'
+    s = s.reset_index()
+    s = s.sort_values('genre_val', ascending=False)
+    s = s.head(num_songs)
+    s = s.sort_values('genre_val', ascending=True)
 
+    # print(s)
+    circles = circlify.circlify(
+        s['genre_val'].tolist(),
+        show_enclosure=False,
+        target_enclosure=circlify.Circle(x=0, y=0, r=1))
 
+    fig, ax = plt.subplots(figsize=(7, 7))
+
+    ax.set_title('Your Top Genres')
+
+    ax.axis('off')
+
+    lim = max(
+        max(
+            abs(circle.x) + circle.r,
+            abs(circle.y) + circle.r,
+        )
+        for circle in circles
+    )
+    plt.xlim(-lim, lim)
+    plt.ylim(-lim, lim)
+    iter = num_songs
+
+    palettes = list(reversed(sns.color_palette("Spectral_r", iter).as_hex()))
+    # print(palette)
+    # print circles
+    labels = s['genre']
+    # print(labels)
+    for circle, label, palette in zip(circles, labels, palettes):
+        x, y, r = circle
+        ax.add_patch(plt.Circle((x, y), r, alpha=0.4, linewidth=2, facecolor=palette))
+        plt.annotate(
+            label,
+            (x, y),
+            va='center',
+            ha='center'
+        )
     plt.show()
-
 # @route('/')
 # def index():
-#
 #     access_token = ""
 #
 #     token_info = sp_oauth.get_cached_token()
@@ -128,14 +153,8 @@ if access_token:
 #         release_date = []
 #         artist_name = []
 #         track_id = []
-#         songs = sp.current_user_top_tracks(limit=50,time_range='long_term')
-#         songs2 = sp.current_user_top_tracks(offset=50, limit=50, time_range='long_term')
-#         songs3 = sp.current_user_top_tracks(offset=100, limit=50, time_range='long_term')
-#         songs4 = sp.current_user_top_tracks(offset=150, limit=50, time_range='long_term')
-#         # song = ChainMap(songs, songs2)
-#         # song2 = ChainMap(songs3, songs4)
-#         # finalSong = ChainMap(song, song2)
-#         # print(finalSong)
+#         num_songs = 20
+#         songs = sp.current_user_top_tracks(limit=50, time_range='long_term')
 #
 #         for i, item in enumerate(songs['items']):
 #             track_name.append(item['name'])
@@ -145,43 +164,77 @@ if access_token:
 #             track_id.append(item['id'])
 #         # loading lists into the dataframe
 #
-#         df = pd.DataFrame({'track_name':track_name, 'release_date':release_date})
+#         df = pd.DataFrame({'track_name': track_name, 'release_date': release_date, 'artist_name': artist_name})
 #         md = df.groupby('release_date').count().to_dict(orient='dict')['track_name']
 #         md2 = df.groupby('release_date').agg(lambda x: list(x)).to_dict(orient='dict')['track_name']
-#         print(md)
-#         print(md2)
 #
+#         genre_list = []
+#         for artists in artist_name:
+#             result = sp.search(artists)
+#             track = result['tracks']['items'][0]
 #
-#         fig, ax = plt.subplots()
-#         dates = list(md.keys())           # list() needed for python 3.x
-#         numSongs = list(md.values())        # ditto
-#         ax.bar(dates, numSongs, width = 0.3) # this will show date at the x-axis
-#         ax.set(title="How old is your music taste?", xlabel="Year of Song Release", ylabel="Number of Songs Released")
-#         cursor = mplcursors.cursor(hover=mplcursors.HoverMode.Transient)
-#         @cursor.connect("add")
-#         def on_add(sel):
-#             x, y, width, height = sel.artist[sel.index].get_bbox().bounds
-#             x = math.ceil(x)
-#             print(x)
-#             z = md2.get(x)
-#             print(z)
-#             # print(z)
-#             sel.annotation.set(text="\n".join(z),
-#                             position=(0, -20), anncoords="offset points")
-#             # sel.annotation.xy = (x + width / 2, y + height)
+#             artist = sp.artist(track["artists"][0]["external_urls"]["spotify"])
+#             genre_list.extend(artist["genres"])
 #
+#         s = pd.Series(Counter(genre_list), name='genre_val')
+#         s.index.name = 'genre'
+#         s = s.reset_index()
+#         s = s.sort_values('genre_val', ascending=False)
+#         s = s.head(num_songs)
+#         s = s.sort_values('genre_val', ascending=True)
+#
+#         # print(s)
+#         circles = circlify.circlify(
+#             s['genre_val'].tolist(),
+#             show_enclosure=False,
+#             target_enclosure=circlify.Circle(x=0, y=0, r=1))
+#
+#         fig, ax = plt.subplots(figsize=(10, 10))
+#
+#         ax.set_title('Your Top Genres')
+#
+#         ax.axis('off')
+#
+#         lim = max(
+#             max(
+#                 abs(circle.x) + circle.r,
+#                 abs(circle.y) + circle.r,
+#             )
+#             for circle in circles
+#         )
+#         plt.xlim(-lim, lim)
+#         plt.ylim(-lim, lim)
+#         iter = num_songs
+#
+#         palettes = list(reversed(sns.color_palette("Spectral_r", iter).as_hex()))
+#         # print(palette)
+#         # print circles
+#         labels = s['genre']
+#         # print(labels)
+#         for circle, label, palette in zip(circles, labels, palettes):
+#             x, y, r = circle
+#             ax.add_patch(plt.Circle((x, y), r, alpha=0.4, linewidth=2, facecolor=palette))
+#             plt.annotate(
+#                 label,
+#                 (x, y),
+#                 va='center',
+#                 ha='center'
+#             )
 #         plt.show()
 #
 #     else:
 #         return htmlForLoginButton()
+#
 #
 # def htmlForLoginButton():
 #     auth_url = getSPOauthURI()
 #     htmlLoginButton = "<a href='" + auth_url + "'>Login to Spotify</a>"
 #     return htmlLoginButton
 #
+#
 # def getSPOauthURI():
 #     auth_url = sp_oauth.get_authorize_url()
 #     return auth_url
+#
 #
 # run(host='', port=8080)
