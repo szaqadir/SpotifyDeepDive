@@ -7,15 +7,15 @@ import sys
 mode = sys.argv[1]
 
 if mode == "M":
-    df0 = pd.read_json('~/Documents/CS 439/Final Project/MykyData/StreamingHistory0.json')
-    df1 = pd.read_json('~/Documents/CS 439/Final Project/MykyData/StreamingHistory1.json')
+    df0 = pd.read_json('MykyData/StreamingHistory0.json')
+    df1 = pd.read_json('MykyData/StreamingHistory1.json')
     df_all = pd.concat([df0, df1], axis=0)
     CACHE = '.cache'
 else:
-    df0 = pd.read_json('~/Documents/CS 439/Final Project/SafiData/StreamingHistory0.json')
-    df1 = pd.read_json('~/Documents/CS 439/Final Project/SafiData/StreamingHistory1.json')
-    df2 = pd.read_json('~/Documents/CS 439/Final Project/SafiData/StreamingHistory2.json')
-    df3 = pd.read_json('~/Documents/CS 439/Final Project/SafiData/StreamingHistory3.json')
+    df0 = pd.read_json('SafiData/StreamingHistory0.json')
+    df1 = pd.read_json('SafiData/StreamingHistory1.json')
+    df2 = pd.read_json('SafiData/StreamingHistory2.json')
+    df3 = pd.read_json('SafiData/StreamingHistory3.json')
     df_all = pd.concat([df0, df1, df2, df3], axis=0)
     CACHE = '.spotipyoauthcache'
 

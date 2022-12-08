@@ -7,15 +7,15 @@ import os
 
 mode = input("Demo mode (M/S):")
 if mode == "M":
-    df0 = pd.read_json('~/Documents/CS 439/Final Project/MykyData/StreamingHistory0.json')
-    df1 = pd.read_json('~/Documents/CS 439/Final Project/MykyData/StreamingHistory1.json')
+    df0 = pd.read_json('MykyData/StreamingHistory0.json')
+    df1 = pd.read_json('MykyData/StreamingHistory1.json')
     df_all = pd.concat([df0, df1], axis=0)
     CACHE = '.cache'
 else:
-    df0 = pd.read_json('~/Documents/CS 439/Final Project/SafiData/StreamingHistory0.json')
-    df1 = pd.read_json('~/Documents/CS 439/Final Project/SafiData/StreamingHistory1.json')
-    df2 = pd.read_json('~/Documents/CS 439/Final Project/SafiData/StreamingHistory2.json')
-    df3 = pd.read_json('~/Documents/CS 439/Final Project/SafiData/StreamingHistory3.json')
+    df0 = pd.read_json('SafiData/StreamingHistory0.json')
+    df1 = pd.read_json('SafiData/StreamingHistory1.json')
+    df2 = pd.read_json('SafiData/StreamingHistory2.json')
+    df3 = pd.read_json('SafiData/StreamingHistory3.json')
     df_all = pd.concat([df0, df1, df2, df3], axis=0)
     CACHE = '.spotipyoauthcache'
 
@@ -131,7 +131,8 @@ sleep(1)
 os.system("python radarchart.py " + mode)
 input("(Press Enter to continue)")
 
-print("\nA person's music taste is an extension of their personality and journey throughout the year."
+print("\nA person's music taste is an extension of their personality and reflection of their journey "
+      "throughout the year."
       "\nFrom deep diving into your Spotify data, we hope you were able to learn more about yourself.")
 input("(Press Enter to continue)")
 
@@ -145,6 +146,8 @@ for i, item in enumerate(songs['items']):
 results = sp.recommendations(seed_tracks=track_id)
 for track in results['tracks']:
     print('\t', track['name'], '-', track['artists'][0]['name'], '(https://open.spotify.com/track/' + track['id'] + ')')
+
+input("(Press Enter to continue)")
 print("\nThank you for using Spotify Deep Dive!")
 
 
